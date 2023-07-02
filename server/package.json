@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon server.ts"
+    "start": "nodemon react-scripts start"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
