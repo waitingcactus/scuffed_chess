@@ -1,50 +1,74 @@
 import React, { useEffect, useState } from "react";
 import './App.css';
 import { io } from "socket.io-client";
-import Board from "./components/Board";
+import Board from "./components/Board/Board";
+import RoomList from "./components/RoomList/RoomList";
+import { send } from "process";
 const socket = io("http://localhost:9000");
 
 function App() {
   const [username, setUsername] = useState("")
-  const [room, setRoom] = useState("")
-  // TEMP TEAM VARIABLE
-  const [team, setTeam] = useState("")
+  const [showGame, setShowGame] = useState(false);
+  const [myRoom, setMyRoom] = useState();
+  const [team, setTeam] = useState('white');
+  
+  
 
-  const joinRoom = () => {
-    if (username !== "" && room !== "") {
-      socket.emit("join_room", room);
-    };
+  const sendName = () => {
+    if (username !== "") {
+      socket.emit("sendName", username)
+    }
   };
+
+  useEffect(() => {
+    socket.on("roomId", (room) => {
+      setShowGame(true);
+      setMyRoom(room);
+    });
+  
+    socket.on("sendJoinRequest", (sendingUser) => {
+      var confirm = window.confirm(`Join request from ${sendingUser}, would you like to accept?`)
+      if(confirm) {
+        socket.emit("joinRequestAnswer", true, sendingUser);
+        setTeam('white');
+      }
+      else {
+        socket.emit("joinRequestAnswer", false, sendingUser);
+      }
+    })
+
+    socket.on("joinRoom", (room, host) => {
+      window.alert(`Joined ${host}'s room`);
+      setMyRoom(room);
+      socket.emit("joinRoom", room);
+      setTeam('black');
+    })
+  }, [socket])
+  
+
 
 
   return (
     <div id='app'>
-      <h1>Join a game</h1>
-      <input
-        type="text"
-        placeholder="Name..."
-        onChange={(event) => {
-          setUsername(event.target.value);
-        }}
-      />
-      <input
-        type="text"
-        placeholder="Room ID..."
-        onChange={(event) => {
-          setRoom(event.target.value);
-        }}
-      />
-      <input
-        type="text"
-        placeholder="Team..."
-        onChange={(event) => {
-          setTeam(event.target.value);
-        }}
-      />
+      {!showGame ? (
+        <div>
+          <h1>Enter display name</h1>
+          <input
+            type="text"
+            placeholder="Name..."
+            onChange={(event) => {
+              setUsername(event.target.value);
+            }}
+          />
 
-      <button onClick={joinRoom}>Join a room</button>
-
-      <Board socket={socket} username={username} room={room} team={team}/>
+          <button onClick={sendName}>Confirm</button>
+        </div>
+      ) : (
+      <div>
+        <RoomList socket = {socket} username = {username}/>
+        <Board socket = {socket} username = {username} room = {myRoom} team = {team}/>
+      </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,8 @@ import app from "./app";
 var debug = require("debug")("socketio-server:server");
 import * as http from "http";
 import socketServer from "./socket";
+import socketController from "./api/contollers/socketController";
+import { Chess } from 'chess.js';
 
 /**
  * Get port from environment and store in Express.
@@ -29,22 +31,7 @@ var server = http.createServer(app);
 
 const io = socketServer(server);
 
-io.on("connection", (socket) => {
-    console.log("New connection from " + socket.id)
-
-    socket.on("join_room", (data) => {
-      socket.join(data)
-      console.log(`User with ID: ${socket.id} joined room: ${data}`)
-    })
-
-    socket.on("disconnect", () => {
-      console.log("User Disconnected", socket.id)
-    })
-
-    socket.on("send_move", (data) => {
-      socket.to(data.room).emit("received_move", data)
-    })
-});
+socketController(io)
 
 io.listen(9000);
 
