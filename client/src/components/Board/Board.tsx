@@ -1,17 +1,12 @@
 import './Board.css'
+import moveSound from '../../assets/move.wav';
 import { Chess } from 'chess.js';
 import { useState, useEffect } from 'react';
 import { Chessboard } from 'react-chessboard';
 
-export default function Board({socket, username, room, team}: any) {
-    const [game, setGame] = useState(new Chess());
+function Board({socket, username, room, team, game, setGame}: any) {
     const [lastMove, setLastMove] = useState();
     const teamChar = team[0]
-
-    // Make this function send the game info as well.
-    // The server should know what state the game is in.
-    // Maybe all the chess rules should in fact be handled by the server
-    // This would ensure that moves are only carried out once and that there's only one copy of the game
 
     useEffect(() => {
         const sendMove = async (move: any) => { 
@@ -28,13 +23,23 @@ export default function Board({socket, username, room, team}: any) {
 
         sendMove(lastMove);
 
-    }, [game, lastMove])
+    }, [lastMove])
 
     useEffect(() => {
         socket.on("broadcastMove", (data: any) => {
             makeMove(data.move)
+            playSound(moveSound);
+            console.log("move received!!!")
         });
+
+        return () => {
+            socket.off("broadcastMove");
+        }
     }, [socket, game])
+
+    function playSound(sound: any) {
+        new Audio(sound).play();
+    }
 
     function makeMove(move: any) {   
         try {
@@ -63,7 +68,7 @@ export default function Board({socket, username, room, team}: any) {
         return true;
     }
     return (
-        <div id='board'>
+        <div id='board' className='board'>
             <Chessboard 
                 position={game.fen()}   
                 onPieceDrop={onDrop} 
@@ -71,7 +76,7 @@ export default function Board({socket, username, room, team}: any) {
                 isDraggablePiece={({ piece }) => piece[0] === teamChar}/>
         </div>
     );
-    
-
-    
+   
 }
+
+export default Board;

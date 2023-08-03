@@ -12,7 +12,7 @@ function generateRoomId() {
 
 // socket io listen to connection
 export default function socketController(io: any) {
-    io.on('connection', function(socket) {
+    io.on('connection', (socket) => {
         console.log("New connection from " + socket.id)
 
         socket.on("joinRoom", joinRoom);
@@ -27,20 +27,25 @@ export default function socketController(io: any) {
 
         socket.on("joinRequestAnswer", joinRequestAnswer);
 
+        socket.on("sendMessage", sendMessage);
+
+        socket.on("leaveRoom", leaveRoom);
+
         function roomList() {
-            setTimeout(() => io.emit("roomsList", users.map((user) => (user.ownRoom) && user.name)), 200);
+            const rooms = users.filter(user => user.ownRoom);
+            setTimeout(() => io.emit("roomsList", rooms.map((user) => user.name)), 200);
         }
 
         function joinRoom(room) {
-            console.log(`User with ID: ${socket.id} joined room: ${room}`)
             socket.join(room)
             const user = users.filter(user=>user.id == socket.id)[0];
+            console.log(`User with name: ${user.name} joined room: ${room}`)
             user.room = room;
             user.ownRoom = false;
             roomList();
         }
 
-        async function sendName(name) {
+        function sendName(name) {
             var isNameValid = true;
             for (var i = 0; i < users.length; i++) {
                 if(users[i].name === name) {
@@ -64,7 +69,8 @@ export default function socketController(io: any) {
             console.log("User Disconnected", socket.id)
             for (var i = 0; i < users.length; i++) {
                 if (users[i].id == socket.id) {
-                    socket.broadcast.to(users[i].room).emit("opponentDisconnect");
+                    socket.to(users[i].room).emit("otherPlayerLeft");
+                    console.log("piss anus")
                     users.splice(i, 1);
                     roomList();
                     break;
@@ -73,13 +79,14 @@ export default function socketController(io: any) {
         }
 
         function move(data) {
-            socket.broadcast.to(data.room).emit("broadcastMove", data)
+            socket.to(data.room).emit("broadcastMove", data)
         }
 
         function sendJoinRequest([sendingUser, receivingUser]) {
             for (var i = 0; i < users.length; i++) {
                 if (users[i].name === receivingUser) {
-                    socket.broadcast.to(users[i].room).emit("sendJoinRequest", sendingUser)
+                    socket.to(users[i].room).emit("sendJoinRequest", sendingUser)
+                    break;
                 }
             }
             
@@ -93,6 +100,29 @@ export default function socketController(io: any) {
                 socket.to(socketId).emit("joinRoom", user.room, user.name);
             } else {
                 socket.to(socketId).emit("joinRequestDeclined", user.name);
+            }
+        }
+
+        function sendMessage(message) {
+            const user = users.filter(user => user.id == socket.id)[0];
+            socket.broadcast.to(user.room).emit("broadcastMessage", message)
+        }
+
+        function leaveRoom(user) {
+            var user = users.filter(user => user.id == socket.id)[0];
+            const oldRoom = user.room;
+            if (!user.ownRoom) {
+                socket.leave(oldRoom);
+                console.log(`User with name: ${user.name} left room: ${oldRoom}`)
+                const room = generateRoomId();
+                user.room = room;
+                user.ownRoom = true;
+                socket.join(room);
+                console.log(`User with name: ${user.name} joined room: ${room}`)
+                socket.emit("leftRoom", room);
+                socket.to(oldRoom).emit("otherPlayerLeft");
+                
+                roomList();
             }
         }
         

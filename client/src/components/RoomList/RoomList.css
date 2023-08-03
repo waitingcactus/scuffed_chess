@@ -1,0 +1,36 @@
+.roomlist-window {
+    width: 15vw;
+    height: 50vh;
+}
+
+.roomlist-window p {
+    margin: 0;
+}
+
+.roomlist-window .roomlist-header {
+    height: 45px;
+    border-radius: 6px;
+    background: #333638;
+    position: relative;
+}
+
+.roomlist-window .roomlist-header p {
+    display: block;
+    padding: 0 1em 0 2em;
+    color: #fff;
+    font-weight: 700;
+    line-height: 45px;
+}
+
+.roomlist-window .roomlist-body {
+    height: calc(60vh - (45px + 70px));
+    border: 1px solid #333638;
+    background: dodgerblue;
+    position: relative;
+    font-family: Arial;
+}
+
+.roomlist-window .roomlist-body select {
+    width: 100%;
+    height: 100%;
+}

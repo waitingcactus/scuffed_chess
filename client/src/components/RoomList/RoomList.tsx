@@ -1,3 +1,4 @@
+import './RoomList.css'
 import { useEffect, useState } from 'react'
 
 export default function RoomList({ socket, username }: any) {
@@ -8,6 +9,10 @@ export default function RoomList({ socket, username }: any) {
         socket.on("roomsList", (roomsList: any) =>{
           setRooms(roomsList);
         })
+
+        return () => {
+            socket.off("roomsList");
+        }
       }, [socket])
 
     function _handleChange(event: any) {
@@ -20,13 +25,26 @@ export default function RoomList({ socket, username }: any) {
         }
     }
 
+    function leaveRoom() {
+        socket.emit('leaveRoom', username)
+    }
+
     return (
-        <div id='roomlist'>
-            <select name="rooms" size={5} onChange={_handleChange}>
-                {rooms.length > 0 &&
-                    rooms.map((name: any) => (name !== username) ? <option key={name} value={name} >{name}'s room</option> : null)}
-            </select>
-            <button onClick={joinRoom}>Join</button>
+        <div className='roomlist-window'>
+            <div className='roomlist-header'>
+                <p>Rooms</p>
+            </div>
+            <div className='roomlist-body'>
+                <select size={5} onChange={_handleChange}>
+                    {rooms.length > 0 &&
+                        rooms.map((name: any) => (name !== username) ? <option key={name} value={name} >{name}'s room</option> : null)}
+                </select>
+            </div>
+            <div className='roomlist-buttons'>
+                <button id='joinbutton' onClick={joinRoom}>Join</button>
+                <button id='leavebutton' onClick={leaveRoom}>Leave</button>
+            </div>
+            
         </div>
     )
 }

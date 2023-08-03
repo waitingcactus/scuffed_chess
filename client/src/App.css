@@ -1,6 +1,24 @@
 #app {
-  display: grid;
-  place-content: center;
   height: 100vh;
-  background-color: #2C2C2D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #221d1d;
+}
+
+.row {
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.row > div {
+  align-self: center;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.row > *:last-child {
+  margin-right: 0;
 }
