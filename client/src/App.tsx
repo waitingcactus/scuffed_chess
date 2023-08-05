@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import startSound from './assets/start.wav';
+import { ipAddress, port } from './NetworkInfo';
 import './App.css';
 import { io } from "socket.io-client";
 import { Chess } from "chess.js";
 import Board from "./components/Board/Board";
 import RoomList from "./components/RoomList/RoomList";
 import Chat from "./components/Chat/Chat";
-const socket = io("http://localhost:9000");
+
+const socket = io(`http://${ipAddress}:${port}`)
 
 function App() {
   const [username, setUsername] = useState("")
